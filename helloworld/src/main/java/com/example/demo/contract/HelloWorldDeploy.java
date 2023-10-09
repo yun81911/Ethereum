@@ -21,7 +21,52 @@ public class HelloWorldDeploy {
         Credentials credentials = WalletUtils.loadCredentials(Constants.PASSWORD, Constants.SOURCE);
         System.out.println("getCredentialsAddress : " + credentials.getAddress());
 
+                // 部署合约
+//        HelloWorld contract = HelloWorld.deploy(web3j, credentials, new DefaultGasProvider()).send();
+//        System.out.println("getContractAddress : " + contract.getContractAddress());
         pendingTransactionFlowable(web3j);
+         pendingTransactionBlock(web3j);
+    }
+
+      private static String decode(String input) {
+          //String decodedInput = new String(Hex.decode(input.substring(138)));
+        String decodedInput = new String(Hex.decode(input.substring(2)));
+//      String decodedInput = new String(Hex.decode("546f6d"));
+        System.out.println("解码后的input值：" + decodedInput.trim());
+        return decodedInput.trim();
+    }
+
+     /**
+     * 遍历区块、查看交易信息
+     * @param web3j
+     * @throws ExecutionException
+     * @throws InterruptedException
+     */
+    public static void pendingTransactionBlock(Web3j web3j) throws ExecutionException, InterruptedException {
+
+        for ( long x=0;x<100000;x++) {
+            BigInteger num=  BigInteger.valueOf(x);
+            DefaultBlockParameter blockParameter = DefaultBlockParameter.valueOf(num);
+            EthBlock ethBlock = web3j.ethGetBlockByNumber(blockParameter, true).sendAsync().get();
+            EthBlock.Block bk = ethBlock.getBlock();
+            System.out.println("区块 hash：" + bk.getHash());
+            System.out.println("区块 number：" + bk.getNumber());
+            System.out.println("区块 parent hashes：" + bk.getParentHash());
+
+            // 根据区块 查询交易信息
+            for (EthBlock.TransactionResult<?> txResult : bk.getTransactions()) {
+                EthBlock.TransactionObject txObject = (EthBlock.TransactionObject) txResult;
+                // 交易信息
+                System.out.println("转出 account：" + txObject.getFrom());
+                System.out.println("转入（合约）：" + txObject.getTo());
+                System.out.println("交易value：" + txObject.getValue());
+                System.out.println("交易input：" + txObject.getInput());
+                System.out.println("交易inputstr：" + decode(txObject.getInput()));
+
+                ;
+            }
+        }
+
     }
 
     /**
